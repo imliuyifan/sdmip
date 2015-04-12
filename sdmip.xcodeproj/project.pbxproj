@@ -366,11 +366,11 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					/Users/yifanliu/Applications/IBM/ILOG/CPLEX_Studio124/cplex/include/ilcplex,
+					/Users/yifanliu/Applications/IBM/ILOG/CPLEX_Studio126/cplex/include/ilcplex,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(USER_APPS_DIR)/IBM/ILOG/CPLEX_Studio124/cplex/lib/x86-64_darwin9_gcc4.0/static_pic",
+					"$(USER_APPS_DIR)/IBM/ILOG/CPLEX_Studio126/cplex/lib/x86-64_osx/static_pic",
 				);
 				OTHER_LDFLAGS = "-Wl,-no_compact_unwind";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -383,11 +383,11 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					/Users/yifanliu/Applications/IBM/ILOG/CPLEX_Studio124/cplex/include/ilcplex,
+					/Users/yifanliu/Applications/IBM/ILOG/CPLEX_Studio126/cplex/include/ilcplex,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(USER_APPS_DIR)/IBM/ILOG/CPLEX_Studio124/cplex/lib/x86-64_darwin9_gcc4.0/static_pic",
+					"$(USER_APPS_DIR)/IBM/ILOG/CPLEX_Studio126/cplex/lib/x86-64_osx/static_pic",
 				);
 				OTHER_LDFLAGS = "-Wl,-no_compact_unwind";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -413,6 +413,7 @@
 				690ADC5C18B47C3400334644 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
