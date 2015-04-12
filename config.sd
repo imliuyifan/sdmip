@@ -12,7 +12,7 @@
 // SCAN LENGTH: Powers of 2
 
 // The maximum number of pi ratio that will be stored
-MAX_SCAN_LEN 512
+// MAX_SCAN_LEN 512
 
 // CHOOSE ONE OF THE FOLLOWING 
 

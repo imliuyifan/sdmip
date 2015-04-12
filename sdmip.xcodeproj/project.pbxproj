@@ -106,7 +106,7 @@
 		690ADCAB18B4809600334644 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		690ADCAD18B4809F00334644 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		690ADCAF18B480CB00334644 /* libcplex.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcplex.a; path = "../../../Applications/IBM/ILOG/CPLEX_Studio124/cplex/lib/x86-64_darwin9_gcc4.0/static_pic/libcplex.a"; sourceTree = "<group>"; };
-		690ADCB218B4823D00334644 /* config.sd */ = {isa = PBXFileReference; lastKnownFileType = text; name = config.sd; path = "../../../Library/Developer/Xcode/DerivedData/sdmip-fwmsnrnftybzluekjbebrhayptuf/Build/Products/Debug/config.sd"; sourceTree = "<group>"; };
+		69B683491ADB34A600746C61 /* config.sd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = config.sd; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,7 +128,7 @@
 			children = (
 				690ADCB118B481E400334644 /* Library */,
 				690ADC5318B47C3400334644 /* sdmip */,
-				690ADCB218B4823D00334644 /* config.sd */,
+				69B683491ADB34A600746C61 /* config.sd */,
 				690ADC5218B47C3400334644 /* Products */,
 			);
 			sourceTree = "<group>";
