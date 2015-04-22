@@ -639,7 +639,7 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
     copy_arr(soln->mip_x, soln->candid_x, prob->num->mast_cols);
     add_box_bounds(sd_global, prob, cell, soln);
     copy_type(cell->master, prob->master->typex);
-    print_problem(cell->master, "FirstMIP.lp");
+    print_problem(cell->master, "MIP.lp");
     set_intparam(NULL, PARAM_SCRIND, CPX_OFF);
     CPXmipopt(env, cell->master->lp);
     CPXgetobjval (env, cell->master->lp, &obj_val);
