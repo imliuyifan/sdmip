@@ -146,9 +146,7 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
 	FILE *batch_obj = NULL; /*Yifan 2012-09-23*/
 	FILE *batch_d = NULL; /* modified by Yifan 2012.09.23 */
 	/*  FILE          *junk; */
-#ifdef DEBUG
-	struct tms total_init_time, total_term_time; /* zl 08/18/04 */
-#endif
+
 	clock_t total_start_time, total_end_time; /* zl 06/29/04 */
 	clock_t iter_start_time, iter_end_time; /* zl 06/29/04 */
 	clock_t argmax_start, argmax_end; /* zl 06/30/04 */
@@ -184,9 +182,7 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
 	strcat(obj_fname, ".obj.out");
 	obj_file = fopen(obj_fname, "w+");
 	fprintf(obj_file, "Iter \tincumb_est \tcandid_est \terror\n");
-#ifdef DEBUG
-	times(&total_init_time); /* zl, 08/18/04. */
-#endif
+
 	total_start_time = clock(); /* zl, 06/29/04. */
     start = time(NULL);
 
@@ -611,9 +607,6 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
     fprintf(time_benders, "sd elapsed time:\t%f\t%f\n", diff, total_acc);
     fclose(time_benders);
     
-#ifdef DEBUG
-	times(&total_term_time); /* zl, 08/18/04. */
-#endif
 	soln->run_time->total_time = ((double) (total_end_time - total_start_time)) / CLOCKS_PER_SEC;
 	/* zl, 08/18/04. */
     print_vect(soln->incumb_x, prob->num->mast_cols, "x_k from the incumbent problem");
@@ -805,22 +798,6 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
 
 #endif
     
-
-#ifdef DEBUG
-	printf("init: utime = %lld, stime = %lld, cutime = %lld, cstime = %lld\n",
-			total_init_time.tms_utime, total_init_time.tms_stime,
-			total_init_time.tms_cutime, total_init_time.tms_cstime);
-
-	printf("term: utime = %lld, stime = %lld, cutime = %lld, cstime = %lld\n",
-			total_term_time.tms_utime, total_term_time.tms_stime,
-			total_term_time.tms_cutime, total_term_time.tms_cstime);
-
-	printf("total: utime = %f, stime = %f, cutime = %f, sutime = %f\n",
-			((double)(total_term_time.tms_utime-total_init_time.tms_utime))/CLK_TCK,
-			((double)(total_term_time.tms_stime-total_init_time.tms_stime))/CLK_TCK,
-			((double)(total_term_time.tms_cutime-total_init_time.tms_cutime))/CLK_TCK,
-			((double)(total_term_time.tms_cstime-total_init_time.tms_cstime))/CLK_TCK);
-#endif
 
 	/*  JH summarizing output for Arlie and Brett ... 3/12/98 */
 

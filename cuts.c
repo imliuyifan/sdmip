@@ -233,9 +233,9 @@ void form_fea_cut(sdglobal_type* sd_global, prob_type *p, cell_type *c,
 	FEA_cut(sd_global, c, s, c->feasible_sigma, s->feasible_delta, s->omega,
 			p->num, s->omega->most, s->dual_statble_flag, new_omega, new_sigma);
 
-//	cut_cnt_pool = c->feasible_cuts_pool->cnt;
 
 #ifdef DEBUG
+    int cut_cnt_pool = c->feasible_cuts_pool->cnt;
 	printf("cut_cnt_pool is %d\n",cut_cnt_pool);
 	for(idx=0; idx < c->feasible_cuts_pool->cnt; idx++)
 	print_cut(c->feasible_cuts_pool, p->num, idx);
