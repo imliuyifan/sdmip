@@ -46,7 +46,7 @@ void form_new_cut(sdglobal_type* sd_global, prob_type *p, cell_type *c,
 void remove_all_cuts(sdglobal_type* sd_global, prob_type *p, cell_type *c,
                      soln_type *s);
 void form_ip_cut(sdglobal_type* sd_global, prob_type *p, cell_type *c,
-                 soln_type *s, int omeg_idx, BOOL new_omega);
+                 soln_type *s, int omeg_idx, BOOL new_omega, int mip_idx);
 void form_fea_cut(sdglobal_type* sd_global, prob_type *p, cell_type *c,
 		soln_type *s, int omeg_idx, vector x_k, BOOL new_omega);
 BOOL form_incumb_cut(sdglobal_type* sd_global, prob_type *p, cell_type *c,

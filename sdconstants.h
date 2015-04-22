@@ -8,6 +8,14 @@
 #ifndef SDCONSTANTS_H_
 #define SDCONSTANTS_H_
 
+// first stage binary
+// for ssn
+//#define total_binary 89
+//#define total_cap 1008
+// for chain
+#define total_binary 128
+#define total_cap 380
+
 //utility.c
 #define MAX_BITS	sizeof(int) * 8
 #define KEY_PAGE	500 / MAX_BITS

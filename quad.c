@@ -903,19 +903,21 @@ void add_flip_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_
     rhs_ind[0] = 2;
     for (cnt = 0; cnt < p->num->mast_cols; cnt++)
     {
-        if (p->master->typex[cnt]=='B' && incumbent_x_k[cnt+1]==1) {
-            CPXchgcoef(env, c->master->lp, 2, cnt, 1.0);
-            rhs_val[0]++;
-        }
-        else{
-            CPXchgcoef(env, c->master->lp, 2, cnt, 0.0);
+        if (p->master->typex[cnt]=='B') {
+            if (DBL_ABS(incumbent_x_k[cnt+1] - 1.0) < 0.00001) {
+                CPXchgcoef(env, c->master->lp, 2, cnt, 1.0);
+                rhs_val[0]++;
+            }
+            else{
+                CPXchgcoef(env, c->master->lp, 2, cnt, -1.0);
+            }
         }
     }
     
     rhs_val[0] = rhs_val[0] - *num_flip;
     //rhs_val[0] = rhs_val[0] - 1;
     CPXchgrhs(env, c->master->lp, 1, rhs_ind, rhs_val);
-    //print_problem(c->master, "fcssn.lp");
+    print_problem(c->master, "fcssn.lp");
 }
 
 void add_box_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_type *s)
@@ -1022,11 +1024,11 @@ void update_cont_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, so
     for (cnt = 0; cnt < p->num->mast_cols; cnt++)
     {
         if (p->master->typex[cnt]=='B') {
-            if (incumbent_x_k[cnt+1]==1) {
-                CPXchgcoef(env, c->master->lp, 2 + cnt + 1 - 89, cnt, -(1+alpha) * incumbent_x_k[cnt+1-89]);
+            if (DBL_ABS(incumbent_x_k[cnt+1] - 1.0) < 0.00001) {
+                CPXchgcoef(env, c->master->lp, 2 + cnt + 1 - total_binary, cnt, -(1+alpha) * incumbent_x_k[cnt+1-total_binary]);
             }
             else{
-                CPXchgcoef(env, c->master->lp, 2 + cnt + 1 - 89, cnt, -1008);
+                CPXchgcoef(env, c->master->lp, 2 + cnt + 1 - total_binary, cnt, -total_cap);
             }
         }
     }
@@ -1037,8 +1039,8 @@ void update_cont_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, so
         for (cnt = 0; cnt < p->num->mast_cols; cnt++)
         {
             if (p->master->typex[cnt]=='B') {
-                if (incumbent_x_k[cnt+1]==1) {
-                    status = CPXchgcoef(env, c->master->lp, 2 + cnt + 1, cnt, -(1-alpha) * incumbent_x_k[cnt+1-89]);
+                if (DBL_ABS(incumbent_x_k[cnt+1] - 1.0) < 0.00001) {
+                    status = CPXchgcoef(env, c->master->lp, 2 + cnt + 1, cnt, -(1-alpha) * incumbent_x_k[cnt+1-total_binary]);
                 }
                 else{
                     status = CPXchgcoef(env, c->master->lp, 2 + cnt + 1, cnt, 0);
@@ -1050,24 +1052,24 @@ void update_cont_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, so
         for (cnt = 0; cnt < p->num->mast_cols; cnt++)
         {
             if (p->master->typex[cnt]=='B') {
-                if (incumbent_x_k[cnt+1]==1) {
+                if (DBL_ABS(incumbent_x_k[cnt+1] - 1.0) < 0.00001) {
                     strcpy(r_names[0], "ULB  ");
-                    r_names[0][3] = '0' + (cnt - 89 + 1) / 10 % 10;
-                    r_names[0][4] = '0' + (cnt - 89 + 1) / 1 % 10;
-                    coef_col[0] = cnt - 89;
+                    r_names[0][3] = '0' + (cnt - total_binary + 1) / 10 % 10;
+                    r_names[0][4] = '0' + (cnt - total_binary + 1) / 1 % 10;
+                    coef_col[0] = cnt - total_binary;
                     coef_col[1] = cnt;
                     coef[0] = 1;
-                    coef[1] = -(1-alpha) * incumbent_x_k[cnt-89+1];
+                    coef[1] = -(1-alpha) * incumbent_x_k[cnt-total_binary+1];
                     xrhs[0] = 0.0;
                     status = CPXaddrows(env, c->master->lp, 0, 1, 2, xrhs, xsense, rmatbeg,
                                coef_col, coef, NULL, r_names);
-                    print_problem(c->master, "after_update_cont_bds.lp");
+                    // print_problem(c->master, "after_update_cont_bds.lp");
                 }
                 else{
                     strcpy(r_names[0], "ULB  ");
-                    r_names[0][3] = '0' + (cnt - 89 + 1) / 10 % 10;
-                    r_names[0][4] = '0' + (cnt - 89 + 1) / 1 % 10;
-                    coef_col[0] = cnt - 89;
+                    r_names[0][3] = '0' + (cnt - total_binary + 1) / 10 % 10;
+                    r_names[0][4] = '0' + (cnt - total_binary + 1) / 1 % 10;
+                    coef_col[0] = cnt - total_binary;
                     coef_col[1] = cnt ;
                     coef[0] = 1;
                     coef[1] = 0.0;
@@ -1075,7 +1077,7 @@ void update_cont_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, so
                     
                     status = CPXaddrows(env, c->master->lp, 0, 1, 2, xrhs, xsense, rmatbeg,
                                coef_col, coef, NULL, r_names);
-                    print_problem(c->master, "after_update_cont_bds.lp");
+                    // print_problem(c->master, "after_update_cont_bds.lp");
                 }
             }
         }

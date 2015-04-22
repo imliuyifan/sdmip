@@ -107,7 +107,6 @@ int main(int argc, char *argv[])
     sd_create_output_folder(buffer1,buffer2,fname);
 #endif
 
-  
   //		eps[0] = 0.01;
   //		eps[1] = 0.001;
   //		eps[2] = 0.0001;

@@ -21,16 +21,16 @@
 // SCAN_LEN 64
 
 // NOMINAL TOLERANCE
-// EPSILON 0.001
-// SCAN_LEN 256
+EPSILON 0.001
+SCAN_LEN 256
 
 // TIGHT TOLERANCE
-EPSILON 0.00001
-SCAN_LEN 512
+// EPSILON 0.00001
+// SCAN_LEN 512
 
 
 // 1 for multiple replications, 0 for single replication
-MULTIPLE_REP 1
+MULTIPLE_REP 0
 
 // Number of iterations between output of solution data to screen & file.
 PRINT_CYCLE 100
@@ -159,6 +159,7 @@ AUTO_SEED  0
 // 16 digits are recommended for the seed
 // Random number seed for generating observations of omega.
 // RUN_SEED1     9495518635394380
+// RUN_SEED1     3554548844580680
 RUN_SEED1     3554548844580680
 RUN_SEED2     4650175399072632
 RUN_SEED3     6070772756632709

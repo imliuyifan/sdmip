@@ -159,7 +159,7 @@ typedef struct
 
 typedef struct
 {
-    u_type uvalue[89];
+    u_type uvalue[total_binary];
 }u_group_type; /* modified by Yifan 2013.9.25 */
 
 /***********************************************************************\

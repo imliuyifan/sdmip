@@ -169,7 +169,7 @@ void remove_all_cuts(sdglobal_type* sd_global, prob_type *p, cell_type *c,
 
 
 void form_ip_cut(sdglobal_type* sd_global, prob_type *p, cell_type *c,
-                  soln_type *s, int omeg_idx, BOOL new_omega)
+                  soln_type *s, int omeg_idx, BOOL new_omega, int mip_idx)
 {
 	one_cut *cut;
     
@@ -181,6 +181,7 @@ void form_ip_cut(sdglobal_type* sd_global, prob_type *p, cell_type *c,
 	printf("Inside form_ip_cut; %d cuts now\n", c->cuts->cnt);
 #endif
     
+    // push Benders' cut down also, but let's push them down gentally
 	cut = new_cut(p->num->mast_cols, s->omega->most, c->k);
     
 	stochastic_updates(sd_global, c, c->lambda, c->sigma, s->delta, s->omega,

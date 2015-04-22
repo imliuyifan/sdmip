@@ -44,6 +44,79 @@ int compare_function(const void  *a,const void *b) {
     else if (x->u > y->u) return 1; return 0;
 }
 
+void run_python(){
+//    FILE* file;
+//    char * argv[1];
+//    int argc = 1;
+//    argv[0] = "test.py";
+//    Py_SetProgramName("test");
+//    Py_Initialize();
+//    PySys_SetArgv(argc, argv);
+//    file = fopen("test.py","r");
+//    PyRun_SimpleFile(file, "test.py");
+//    Py_Finalize();
+    system("/opt/local/bin/python2.7 test.py");
+    return;
+}
+
+void draw_bipartite_graph(vector x, char *fname){
+    FILE *test_py;
+    int i;
+    int row, col, non_zero = 0;
+    test_py = fopen("test.py", "w");
+    BOOL start_flag = FALSE;
+    fprintf(test_py, "import networkx as nx, numpy as np\nfrom networkx.algorithms import bipartite\nfrom scipy.sparse import csc_matrix\nimport matplotlib.pyplot as plt\nimport tp\n");
+    
+    fprintf(test_py, "RB = nx.complete_bipartite_graph(16, 8)\n");
+    fprintf(test_py, "row = np.array([");
+    // Now we print the row info
+    
+    for (i = total_binary; i < 2*total_binary; i++) {
+        if (DBL_ABS(x[i] - 1.0) < 0.00001 ) {
+            row = (i - total_binary - 1) / 8 ; // this will be the row index : starting from 0
+            if (start_flag == FALSE) {
+                fprintf(test_py, " %d", row);
+                start_flag = TRUE;
+            }
+            else{
+                fprintf(test_py, ", %d", row);
+            }
+            non_zero++;
+        }
+    }
+    
+    start_flag = FALSE;
+    fprintf(test_py, "])\ncol = np.array([");
+    for (i = total_binary; i < 2*total_binary; i++) {
+        if (DBL_ABS(x[i] - 1.0) < 0.00001) {
+            col = ((i - total_binary) % 8 - 1 + 8) % 8 ; // this will be the col index : starting from 0
+            if (start_flag == FALSE) {
+                fprintf(test_py, " %d", col);
+                start_flag = TRUE;
+            }
+            else{
+                fprintf(test_py, ", %d", col);
+            }
+        }
+    }
+    
+    start_flag = FALSE;
+    fprintf(test_py, "])\ndata = np.array([");
+    for (i = 0; i < non_zero ; i++) {
+        if (start_flag == FALSE) {
+            fprintf(test_py, " 1");
+            start_flag = TRUE;
+        }
+        else{
+            fprintf(test_py, ", 1");
+        }
+    }
+    fprintf(test_py, "])\nA = csc_matrix((data, (row, col)), shape=(16, 8)) \nG = tp.nx_graph_from_biadjacency_matrix(A)\nplt.savefig(\"%s\")", fname);
+    fclose(test_py);
+    
+    run_python();
+}
+
 /************************************************************************\
 ** This function represents the SD algorithm, as solved for a
  ** single cell.  It creates temporary data structures required for
@@ -544,7 +617,8 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
 	soln->run_time->total_time = ((double) (total_end_time - total_start_time)) / CLOCKS_PER_SEC;
 	/* zl, 08/18/04. */
     print_vect(soln->incumb_x, prob->num->mast_cols, "x_k from the incumbent problem");
-    //evaluate_inc(sd_global, cell, prob, soln, soln->incumb_x, fname, conf_int, 0);
+    sd_global->config.EVAL_SEED1 = prob->eval_seed;
+    evaluate_inc(sd_global, cell, prob, soln, soln->incumb_x, fname, conf_int, 0);
 
     
 #if 1
@@ -573,26 +647,28 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
     soln->mip_x[0] = one_norm(soln->mip_x+1, prob->num->mast_cols);
     print_vect(soln->mip_x, prob->num->mast_cols, "MIP-X");
     
+    draw_bipartite_graph(soln->mip_x, "t1");
+    // Now the following seems like an ssn exclusive code
     for (ssn_idx=0; ssn_idx<prob->num->mast_cols; ssn_idx++) {
         soln->mip_x[ssn_idx]=0;
     }
     u_group_type u_group;
-    for (ssn_idx=0; ssn_idx<89; ssn_idx++) {
+    for (ssn_idx=0; ssn_idx<total_binary; ssn_idx++) {
         u_group.uvalue[ssn_idx].u = soln->incumb_x[1+ssn_idx];
-        u_group.uvalue[ssn_idx].u_idx = 90+ssn_idx;
+        u_group.uvalue[ssn_idx].u_idx = total_binary+1+ssn_idx;
     }
     qsort(u_group.uvalue, sizeof(u_group.uvalue)/sizeof(*u_group.uvalue), sizeof(*u_group.uvalue), compare_function);
     double ssn_sum = 0, temp;
-    for (ssn_idx=88; ssn_idx>=0; ssn_idx--) {
-        if(ssn_sum > prob->master->rhsx[1]) break;
+    for (ssn_idx=total_binary-1; ssn_idx>=0; ssn_idx--) {
+        if(ssn_sum >= prob->master->rhsx[1]) break;
         soln->mip_x[u_group.uvalue[ssn_idx].u_idx] = 1;
-        soln->mip_x[u_group.uvalue[ssn_idx].u_idx-89] = soln->incumb_x[u_group.uvalue[ssn_idx].u_idx-89];
+        soln->mip_x[u_group.uvalue[ssn_idx].u_idx-total_binary] = soln->incumb_x[u_group.uvalue[ssn_idx].u_idx-total_binary];
         CPXgetcoef(env, cell->master->lp, 1, u_group.uvalue[ssn_idx].u_idx-1, &temp);
         ssn_sum += temp;
     }
     soln->mip_x[0] = one_norm(soln->mip_x+1, prob->num->mast_cols);
     print_vect(soln->mip_x, prob->num->mast_cols, "Adjusted-MIP-X");
-    
+    draw_bipartite_graph(soln->mip_x, "t2");
     /* modified by Yifan 2013.10.04 */
 #if 0
 	fix=fopen("500samples_output.txt", "r");
@@ -615,7 +691,7 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
     mip_names[0] = arr_alloc(NAME_SIZE, char);
     
     /* modified by Yifan 2013.9.26 */
-    remove_all_cuts(sd_global, prob, cell, soln);
+    // remove_all_cuts(sd_global, prob, cell, soln);
     print_problem(cell->master, "after_rv_all_cuts.lp");
     
     /* Allocate memory for the incumbent IP solution 2013.10.01 Yifan */
@@ -650,28 +726,24 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
             }
         }*/
 
-        form_ip_cut(sd_global, prob, cell, soln, omeg_idx, FALSE);
+        form_ip_cut(sd_global, prob, cell, soln, omeg_idx, FALSE, mip_idx);
 
         
-        //add_box_bounds(sd_global, prob, cell, soln);
+        // add_box_bounds(sd_global, prob, cell, soln);
         add_flip_bounds(sd_global, prob, cell, soln,incumbent_x_k, &num_flip);
         if (mip_idx>1) {
             max_height = max_cut_height(sd_global, cell->cuts, soln->mip_x, cell, prob->num)+CxX(prob->c, soln->mip_x, prob->num->mast_cols);
             actual_improve = max_height2 - max_height;
-            //if (actual_improve > 0.2 * pred_improve) {
-            if (max_height < max_height2) {
+            if ((actual_improve > 0.2 * pred_improve) && actual_improve > 0) {
+            // if (max_height < max_height2) {
                 copy_arr(incumbent_x_k, soln->mip_x, prob->num->mast_cols);
-                num_flip = min(num_flip*2, 89);
+                num_flip = min(num_flip*2.0 , 0.5 * total_binary);
                 alpha = min(alpha * 2.0, 0.99);
-                //sd_global->config.EVAL_SEED1 = prob->eval_seed;
-                //evaluate_inc(sd_global, cell, prob, soln, incumbent_x_k, fname, conf_int, 0);
             }
             else
             {
-                num_flip = max(num_flip/2, 1);
+                num_flip = max(num_flip/2.0, 1);
                 alpha = max(alpha*0.5, 0.1);
-                //sd_global->config.EVAL_SEED1 = prob->eval_seed;
-                //evaluate_inc(sd_global, cell, prob, soln, soln->mip_x, fname, conf_int, 0);
             }
         }
         strcpy(mip_names[0], "MIP    ");
@@ -680,18 +752,26 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
         mip_names[0][5] = '0' + mip_idx / 100 % 10;
         mip_names[0][6] = '0' + mip_idx / 10 % 10;
         mip_names[0][7] = '0' + mip_idx / 1 % 10;
-        mip_names[0][8] = '.';
+        mip_names[0][8] = '\0'; // modified by Yifan for saving figures
         mip_names[0][9] = 'l';
         mip_names[0][10] = 'p';
         mip_names[0][11] = '\0';
-        //print_problem(cell->master, mip_names[0]);
+        // print_problem(cell->master, mip_names[0]);
         max_height2 = max_cut_height(sd_global, cell->cuts, incumbent_x_k, cell, prob->num)+CxX(prob->c, incumbent_x_k, prob->num->mast_cols);
         set_intparam(NULL, PARAM_SCRIND, CPX_OFF);
+        // added by Yifan to push old cuts down
+        change_eta_col(cell->master, cell->cuts, cell->k+mip_idx, soln, prob->num);
         CPXmipopt(env, cell->master->lp);
         CPXgetobjval (env, cell->master->lp, &obj_val);
         pred_improve = max_height2 - obj_val;
         get_x(cell->master, soln->mip_x+1, 0, prob->num->mast_cols);
         soln->mip_x[0] = one_norm(soln->mip_x+1, prob->num->mast_cols);
+        
+        // herer we output the graph script
+        if (mip_idx%100 == 0) {
+            draw_bipartite_graph(soln->mip_x, mip_names[0]);
+        }
+        
         printf("Iteration%d\t:",mip_idx);
         //print_vect(soln->mip_x, prob->num->mast_cols, "MIP-X");
         printf("Upper Bound: %f\n", max_height2);
@@ -724,6 +804,8 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
 
 
 #endif
+    
+
 #ifdef DEBUG
 	printf("init: utime = %lld, stime = %lld, cutime = %lld, cstime = %lld\n",
 			total_init_time.tms_utime, total_init_time.tms_stime,
