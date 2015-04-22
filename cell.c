@@ -704,7 +704,7 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
     fclose(soln_benders);
     
     start = time(NULL);
-    while (mip_idx<=1000) {
+    while (mip_idx<=2) {
         update_cont_bounds(sd_global, prob, cell, soln, incumbent_x_k, alpha, mip_idx);
         // omeg_idx = generate_observ(sd_global, soln->omega, prob->num, &new_omega, &(sd_global->config.RUN_SEED));
        /* if (mip_idx%50==0) {
