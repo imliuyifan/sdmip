@@ -1082,6 +1082,9 @@ void update_cont_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, so
             }
         }
     }
+    
+    mem_free(r_names[0]);
+    mem_free(r_names);
 
     //print_problem(c->master, "after_update_cont_bds.lp");
     

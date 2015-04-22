@@ -41,7 +41,7 @@
 #undef ENCODE  /* prints omega information to check the bitwise encoding     */
 #undef OPT     /* prints debug messages in the code for checking optimality  */
 #undef DEBUG   /* prints lots of stuff, like structure contents and messages */
-#define TRACE   /* prints a message at the beginning every major function     */
+#undef TRACE   /* prints a message at the beginning every major function     */
 #undef SAVE    /* causes program to save every master & subproblem solved    */
 #undef LOOP    /* prints a message at the beginning of minor functions,      */
 /* which often occur (many, many times) inside loops          */
