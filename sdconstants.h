@@ -59,7 +59,7 @@
 /*
  ** Some constants used in various places
  */
-#define NAME_SIZE	16	/* length of CPLEX problem names */
+#define NAME_SIZE	64	/* length of CPLEX problem names */
 #define RHS_COL		-1	/* index of the right hand side in CPLEX */
 #define GE		'G'	/* code for a >= constraint in CPLEX */
 #define LE		'L'
