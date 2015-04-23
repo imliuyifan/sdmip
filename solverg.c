@@ -464,7 +464,7 @@ int get_objname(one_problem *p, char *buf, int bufspace, int *psurplus)
  ** the argument problem.
  \**********************************************************************************/
 
-#define WORDSIZE 16
+#define WORDSIZE 64
 
 int get_rowname(one_problem *p, char **name, char *namestore, int storespace,
                 int *psurplus, int begin, int end)

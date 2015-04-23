@@ -613,7 +613,13 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
     sd_global->config.EVAL_SEED1 = prob->eval_seed;
     evaluate_inc(sd_global, cell, prob, soln, soln->incumb_x, fname, conf_int, 0);
 
-    
+    /* 
+     ***********************************************
+     The regular SD run ends here, Benders' afterwards.
+    ***********************************************
+     ***********************************************
+     ***********************************************
+     */
 #if 1
     /* modified by Yifan 2013.10.02 */
     double obj_val,max_height, max_height2;
@@ -662,6 +668,7 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
     soln->mip_x[0] = one_norm(soln->mip_x+1, prob->num->mast_cols);
     print_vect(soln->mip_x, prob->num->mast_cols, "Adjusted-MIP-X");
     draw_bipartite_graph(soln->mip_x, "t2");
+    
     /* modified by Yifan 2013.10.04 */
 #if 0
 	fix=fopen("500samples_output.txt", "r");
@@ -684,14 +691,15 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
     mip_names[0] = arr_alloc(NAME_SIZE, char);
     
     /* modified by Yifan 2013.9.26 */
-    // remove_all_cuts(sd_global, prob, cell, soln);
+    remove_all_cuts(sd_global, prob, cell, soln);
     print_problem(cell->master, "after_rv_all_cuts.lp");
     
     /* Allocate memory for the incumbent IP solution 2013.10.01 Yifan */
     double * incumbent_x_k;
     double pred_improve = 0.0, alpha = 0.1;
     double actual_improve = 0.0;
-    int num_flip = 1;
+    double num_flip = 1.0;
+    double penalty = 1.0;
     if (!(incumbent_x_k = arr_alloc(prob->num->mast_cols+1, double)))
         err_msg("Allocation", "solve_cell", "incumbent_x_k");
     copy_arr(incumbent_x_k, soln->mip_x, prob->num->mast_cols);
@@ -704,7 +712,7 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
     fclose(soln_benders);
     
     start = time(NULL);
-    while (mip_idx<=2) {
+    while (mip_idx<=1000) {
         update_cont_bounds(sd_global, prob, cell, soln, incumbent_x_k, alpha, mip_idx);
         // omeg_idx = generate_observ(sd_global, soln->omega, prob->num, &new_omega, &(sd_global->config.RUN_SEED));
        /* if (mip_idx%50==0) {
@@ -722,8 +730,16 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
         form_ip_cut(sd_global, prob, cell, soln, omeg_idx, FALSE, mip_idx);
 
         
+        // Use this for general integers.
         // add_box_bounds(sd_global, prob, cell, soln);
-        add_flip_bounds(sd_global, prob, cell, soln,incumbent_x_k, &num_flip);
+        
+        // Use thsi for binary variables.
+        add_flip_bounds(sd_global, prob, cell, soln,incumbent_x_k, &penalty, &num_flip, mip_idx);
+        
+        
+        // Here is the implementation of the "trust region" method:
+        // "num_flip" is for "hard" constraint and "penalty" is for "soft" constraint on binary variables;
+        // "alpha" is for "hard" constraint on continuous variables.
         if (mip_idx>1) {
             max_height = max_cut_height(sd_global, cell->cuts, soln->mip_x, cell, prob->num)+CxX(prob->c, soln->mip_x, prob->num->mast_cols);
             actual_improve = max_height2 - max_height;
@@ -731,14 +747,18 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
             // if (max_height < max_height2) {
                 copy_arr(incumbent_x_k, soln->mip_x, prob->num->mast_cols);
                 num_flip = min(num_flip*2.0 , 0.5 * total_binary);
+                penalty = max(penalty / 2.0, 1.0);
                 alpha = min(alpha * 2.0, 0.99);
             }
             else
             {
                 num_flip = max(num_flip/2.0, 1);
+                penalty = min(penalty * 2.0, 03.2*total_binary);
                 alpha = max(alpha*0.5, 0.1);
             }
         }
+        
+        // Prepare names for "lp" or "png" output
         strcpy(mip_names[0], "MIP    ");
         mip_names[0][3] = '0' + mip_idx / 10000 % 10;
         mip_names[0][4] = '0' + mip_idx / 1000 % 10;
@@ -750,26 +770,31 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
         mip_names[0][10] = 'p';
         mip_names[0][11] = '\0';
         // print_problem(cell->master, mip_names[0]);
+        
+        
         max_height2 = max_cut_height(sd_global, cell->cuts, incumbent_x_k, cell, prob->num)+CxX(prob->c, incumbent_x_k, prob->num->mast_cols);
         set_intparam(NULL, PARAM_SCRIND, CPX_OFF);
         // added by Yifan to push old cuts down
-        change_eta_col(cell->master, cell->cuts, cell->k+mip_idx, soln, prob->num);
+        // change_eta_col(cell->master, cell->cuts, cell->k+mip_idx, soln, prob->num);
         CPXmipopt(env, cell->master->lp);
         CPXgetobjval (env, cell->master->lp, &obj_val);
         pred_improve = max_height2 - obj_val;
         get_x(cell->master, soln->mip_x+1, 0, prob->num->mast_cols);
         soln->mip_x[0] = one_norm(soln->mip_x+1, prob->num->mast_cols);
         
-        // herer we output the graph script
+        // herer we output the graph script every 100 iterations
         if (mip_idx%100 == 0) {
             draw_bipartite_graph(soln->mip_x, mip_names[0]);
         }
         
+        // Output LB, UB and GAP to the terminal
         printf("Iteration%d\t:",mip_idx);
         //print_vect(soln->mip_x, prob->num->mast_cols, "MIP-X");
         printf("Upper Bound: %f\n", max_height2);
         printf("Lower Bound: %f\n", obj_val);
         printf("Gap: %f\%%\n",DBL_ABS((max_height2-obj_val)/max_height2)*100);
+        
+        // Record time and solution information every 100 iterations
         if (mip_idx%100==0) {
             stop = time(NULL);
             diff = difftime(stop, start);
@@ -786,8 +811,11 @@ void solve_cell(sdglobal_type* sd_global, cell_type *cell, prob_type *prob,
             evaluate_inc(sd_global, cell, prob, soln, incumbent_x_k, fname, conf_int, 0);
             start = time(NULL);
         }
+        
         mip_idx++;
     }
+    
+    
     mem_free(mip_names[0]);
     mem_free(mip_names);
     //sd_global->config.EVAL_SEED1 = prob->eval_seed;

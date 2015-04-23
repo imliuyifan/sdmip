@@ -20,7 +20,7 @@ void construct_batch_QP(sdglobal_type* sd_global, prob_type *p, cell_type *c,
 void construct_QP(prob_type *p, cell_type *c, double sigma);
 void destruct_QP(prob_type *p, cell_type *c);
 void change_bounds_back(prob_type *p, cell_type *c, soln_type *s);
-void add_flip_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_type *s, double * incumbent_x_k, int *num_flip);
+void add_flip_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_type *s, double * incumbent_x_k, double *penalty, double *num_flip, int mip_idx);
 void add_box_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_type *s);
 void update_cont_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_type *s, double *incumbent_x_k, double alpha, int mip_idx);
 #endif

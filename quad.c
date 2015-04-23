@@ -895,12 +895,21 @@ void change_bounds_back(prob_type *p, cell_type *c, soln_type *s)
 #endif
     
 }
-void add_flip_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_type *s, double * incumbent_x_k, int *num_flip)
+void add_flip_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_type *s, double * incumbent_x_k, double *penalty, double *num_flip, int mip_idx)
 {
+    // zero for "hard" constraint and "one" for penalized objective
+    int penalization_flag = 0;
+    
     int cnt,rhs_ind[1];
     double rhs_val[1];
     rhs_val[0] = 0;
     rhs_ind[0] = 2;
+    
+    char **colname;
+    colname = (char **) calloc(2, sizeof(char*));
+    colname[0] = (char *) calloc(WORDSIZE, sizeof(char));
+    colname[1] = (char *) calloc(WORDSIZE, sizeof(char));
+    
     for (cnt = 0; cnt < p->num->mast_cols; cnt++)
     {
         if (p->master->typex[cnt]=='B') {
@@ -914,10 +923,46 @@ void add_flip_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_
         }
     }
     
-    rhs_val[0] = rhs_val[0] - *num_flip;
-    //rhs_val[0] = rhs_val[0] - 1;
-    CPXchgrhs(env, c->master->lp, 1, rhs_ind, rhs_val);
-    print_problem(c->master, "fcssn.lp");
+    if (penalization_flag == 0) {
+        rhs_val[0] = rhs_val[0] - *num_flip;
+        //rhs_val[0] = rhs_val[0] - 1;
+        CPXchgrhs(env, c->master->lp, 1, rhs_ind, rhs_val);
+    }
+    else
+    {
+        CPXchgrhs(env, c->master->lp, 1, rhs_ind, rhs_val);
+        // penalize violation in the objective
+        if (mip_idx == 1) {
+            CPXchgsense(env, c->master->lp, 1, rhs_ind, "E");
+            int      matbeg[2];
+            int      matind[2];
+            double   matval[2];
+            double   lb[2];
+            double   obj[2];
+            obj[0] = *penalty;       obj[1] = *penalty;
+            matbeg[0] = 0;      matbeg[1] = 1;
+            matind[0] = 2;      matind[1] = 2;
+            matval[0] = -1.0;   matval[1] = 1.0;
+            lb[0] = 0.0;        lb[1] = 0.0;
+            colname[0] = "p1"; colname[1] = "p2";
+            CPXaddcols(env, c->master->lp, 2, 2, obj, matbeg, matind, matval, lb, NULL, colname);
+        }
+        else{
+            int obj_indcies[2];
+            double   obj[2];
+            obj_indcies[0] = 2 * total_binary + 1;
+            obj_indcies[1] =  2 * total_binary + 2;
+            obj[0] = *penalty;       obj[1] = *penalty;
+            CPXchgobj(env, c->master->lp, 2, obj_indcies, obj);
+        }
+
+    }
+
+    // print_problem(c->master, "fcssn.lp");
+
+    mem_free(colname);
+    
+
 }
 
 void add_box_bounds(sdglobal_type* sd_global, prob_type *p, cell_type *c, soln_type *s)

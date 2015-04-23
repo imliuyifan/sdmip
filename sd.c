@@ -748,7 +748,7 @@ void sd_mv_files(char *fname)
 void sd_mv_files(char *buffer1, char *buffer2, char *fname)
 {
     int status;
-    strcpy(buffer2, "mv *.out *.lp *.dat ");
+    strcpy(buffer2, "mv *.out *.lp *.dat *.png time_benders soln_benders ");
 	strcat(buffer2, buffer1);
 	status = system(buffer2);
     if(status == -1){
